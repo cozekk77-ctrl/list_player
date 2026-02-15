@@ -2,7 +2,7 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DVLZ Player Registration System</title>
     <style>
         * {
@@ -157,13 +157,18 @@
             box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3);
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(227, 30, 36, 0.5);
         }
 
         .btn:active {
             transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .player-list {
@@ -284,10 +289,28 @@
             animation: slideDown 0.3s ease;
         }
 
+        .error-message {
+            background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+            color: var(--white);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 600;
+            animation: slideDown 0.3s ease;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
             color: rgba(255, 255, 255, 0.5);
+            font-size: 1.1rem;
         }
 
         @keyframes slideDown {
@@ -352,10 +375,10 @@
             <button class="mode-btn" onclick="switchMode('admin')">Admin Dashboard</button>
         </div>
 
-        <!-- Registration Form -->
         <div id="registerSection" class="section">
             <h2>Register Player</h2>
             <div id="successMessage" class="success-message hidden"></div>
+            <div id="errorMessage" class="error-message hidden"></div>
             <form id="playerForm" onsubmit="registerPlayer(event)">
                 <div class="form-group">
                     <label for="playerName">Nama Player</label>
@@ -379,11 +402,10 @@
                         <option value="AHLI BIASA">AHLI BIASA</option>
                     </select>
                 </div>
-                <button type="submit" class="btn">Daftar Sekarang</button>
+                <button type="submit" class="btn" id="submitBtn">Daftar Sekarang</button>
             </form>
         </div>
 
-        <!-- Admin Dashboard -->
         <div id="adminSection" class="section hidden">
             <h2>Admin Dashboard</h2>
             
@@ -402,78 +424,148 @@
                 </div>
             </div>
 
+            <div id="loadingIndicator" class="loading hidden">Memuat data...</div>
             <div id="playerList" class="player-list"></div>
         </div>
     </div>
 
     <script>
-        // Advanced data management system
+        // Configuration - Guna Google Apps Script sebagai backend
+        const CONFIG = {
+            // Anda perlu create Google Apps Script dan masukkan URL dia sini
+            API_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+            // Atau guna localStorage jika takde backend
+            USE_CLOUD: false // Set true bila dah setup backend
+        };
+
         class PlayerManager {
             constructor() {
-                this.storageKey = 'dvlz_players_v1';
-                this.initialize();
+                this.storageKey = 'dvlz_players_data';
             }
 
-            initialize() {
-                if (!localStorage.getItem(this.storageKey)) {
-                    localStorage.setItem(this.storageKey, JSON.stringify([]));
+            async getAllPlayers() {
+                if (CONFIG.USE_CLOUD) {
+                    return await this.getPlayersFromCloud();
+                }
+                return this.getPlayersFromLocal();
+            }
+
+            async getPlayersFromCloud() {
+                try {
+                    const response = await fetch(CONFIG.API_URL + '?action=getPlayers');
+                    const data = await response.json();
+                    return data.players || [];
+                } catch (error) {
+                    console.error('Error fetching from cloud:', error);
+                    return this.getPlayersFromLocal();
                 }
             }
 
-            getAllPlayers() {
+            getPlayersFromLocal() {
                 try {
-                    return JSON.parse(localStorage.getItem(this.storageKey)) || [];
+                    const data = localStorage.getItem(this.storageKey);
+                    return data ? JSON.parse(data) : [];
                 } catch (error) {
-                    console.error('Error reading players:', error);
+                    console.error('Error reading local storage:', error);
                     return [];
                 }
             }
 
-            addPlayer(name, role) {
-                const players = this.getAllPlayers();
-                const newPlayer = {
+            async addPlayer(name, role) {
+                const player = {
                     id: this.generateId(),
                     name: this.sanitize(name),
                     role: this.sanitize(role),
                     timestamp: new Date().toISOString(),
-                    registeredDate: new Date().toLocaleDateString('ms-MY', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })
+                    registeredDate: this.formatDate(new Date())
                 };
-                players.unshift(newPlayer);
-                this.savePlayers(players);
-                return newPlayer;
+
+                if (CONFIG.USE_CLOUD) {
+                    return await this.addPlayerToCloud(player);
+                }
+                return this.addPlayerToLocal(player);
             }
 
-            deletePlayer(id) {
-                const players = this.getAllPlayers().filter(p => p.id !== id);
-                this.savePlayers(players);
+            async addPlayerToCloud(player) {
+                try {
+                    const response = await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'addPlayer', player: player })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        return player;
+                    }
+                    throw new Error('Failed to add player');
+                } catch (error) {
+                    console.error('Error adding to cloud:', error);
+                    return this.addPlayerToLocal(player);
+                }
             }
 
-            savePlayers(players) {
+            addPlayerToLocal(player) {
+                const players = this.getPlayersFromLocal();
+                players.unshift(player);
                 localStorage.setItem(this.storageKey, JSON.stringify(players));
+                return player;
+            }
+
+            async deletePlayer(id) {
+                if (CONFIG.USE_CLOUD) {
+                    return await this.deletePlayerFromCloud(id);
+                }
+                return this.deletePlayerFromLocal(id);
+            }
+
+            async deletePlayerFromCloud(id) {
+                try {
+                    const response = await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'deletePlayer', id: id })
+                    });
+                    const data = await response.json();
+                    return data.success;
+                } catch (error) {
+                    console.error('Error deleting from cloud:', error);
+                    return this.deletePlayerFromLocal(id);
+                }
+            }
+
+            deletePlayerFromLocal(id) {
+                const players = this.getPlayersFromLocal().filter(p => p.id !== id);
+                localStorage.setItem(this.storageKey, JSON.stringify(players));
+                return true;
             }
 
             generateId() {
-                return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
             }
 
             sanitize(input) {
-                const temp = document.createElement('div');
-                temp.textContent = input;
-                return temp.innerHTML;
+                const div = document.createElement('div');
+                div.textContent = input;
+                return div.innerHTML;
             }
 
-            getStats() {
-                const players = this.getAllPlayers();
+            formatDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+                const month = months[date.getMonth()];
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${day} ${month} ${year}, ${hours}:${minutes}`;
+            }
+
+            async getStats() {
+                const players = await this.getAllPlayers();
                 const today = new Date().toDateString();
-                const todayCount = players.filter(p => 
-                    new Date(p.timestamp).toDateString() === today
-                ).length;
+                const todayCount = players.filter(p => {
+                    const playerDate = new Date(p.timestamp);
+                    return playerDate.toDateString() === today;
+                }).length;
                 const uniqueRoles = new Set(players.map(p => p.role)).size;
 
                 return {
@@ -485,6 +577,7 @@
         }
 
         const playerManager = new PlayerManager();
+        let autoRefreshInterval = null;
 
         function switchMode(mode) {
             const registerSection = document.getElementById('registerSection');
@@ -497,61 +590,112 @@
                 registerSection.classList.remove('hidden');
                 adminSection.classList.add('hidden');
                 buttons[0].classList.add('active');
+                
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
             } else {
                 registerSection.classList.add('hidden');
                 adminSection.classList.remove('hidden');
                 buttons[1].classList.add('active');
                 loadAdminDashboard();
+                
+                autoRefreshInterval = setInterval(() => {
+                    loadAdminDashboard();
+                }, 5000);
             }
         }
 
-        function registerPlayer(event) {
+        async function registerPlayer(event) {
             event.preventDefault();
 
             const name = document.getElementById('playerName').value.trim();
             const role = document.getElementById('playerRole').value;
+            const submitBtn = document.getElementById('submitBtn');
 
             if (!name || !role) {
-                alert('Sila isi semua maklumat!');
+                showErrorMessage('Sila isi semua maklumat');
                 return;
             }
 
-            const player = playerManager.addPlayer(name, role);
-            
-            showSuccessMessage(`Player ${player.name} berjaya didaftarkan sebagai ${player.role}!`);
-            
-            document.getElementById('playerForm').reset();
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sedang mendaftar...';
 
-            setTimeout(() => {
-                hideSuccessMessage();
-            }, 4000);
+            try {
+                const player = await playerManager.addPlayer(name, role);
+                
+                if (player) {
+                    showSuccessMessage(`${player.name} berjaya didaftarkan sebagai ${player.role}`);
+                    document.getElementById('playerForm').reset();
+                } else {
+                    showErrorMessage('Gagal mendaftar. Sila cuba lagi');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showErrorMessage('Ralat semasa mendaftar. Sila cuba lagi');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Daftar Sekarang';
+            }
         }
 
         function showSuccessMessage(message) {
             const messageDiv = document.getElementById('successMessage');
             messageDiv.textContent = message;
             messageDiv.classList.remove('hidden');
+            hideErrorMessage();
+            
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 4000);
+        }
+
+        function showErrorMessage(message) {
+            const messageDiv = document.getElementById('errorMessage');
+            messageDiv.textContent = message;
+            messageDiv.classList.remove('hidden');
+            hideSuccessMessage();
+            
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 4000);
         }
 
         function hideSuccessMessage() {
-            const messageDiv = document.getElementById('successMessage');
-            messageDiv.classList.add('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
         }
 
-        function loadAdminDashboard() {
-            updateStats();
-            renderPlayerList();
+        function hideErrorMessage() {
+            document.getElementById('errorMessage').classList.add('hidden');
         }
 
-        function updateStats() {
-            const stats = playerManager.getStats();
+        async function loadAdminDashboard() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            if (document.getElementById('playerList').children.length === 0) {
+                loadingIndicator.classList.remove('hidden');
+            }
+
+            try {
+                await updateStats();
+                await renderPlayerList();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        async function updateStats() {
+            const stats = await playerManager.getStats();
             document.getElementById('totalPlayers').textContent = stats.total;
             document.getElementById('todayRegistrations').textContent = stats.today;
             document.getElementById('uniqueRoles').textContent = stats.roles;
         }
 
-        function renderPlayerList() {
-            const players = playerManager.getAllPlayers();
+        async function renderPlayerList() {
+            const players = await playerManager.getAllPlayers();
             const listContainer = document.getElementById('playerList');
 
             if (players.length === 0) {
@@ -577,16 +721,27 @@
             `).join('');
         }
 
-        function deletePlayer(id) {
+        async function deletePlayer(id) {
             if (confirm('Anda pasti nak buang player ini?')) {
-                playerManager.deletePlayer(id);
-                loadAdminDashboard();
+                try {
+                    await playerManager.deletePlayer(id);
+                    await loadAdminDashboard();
+                } catch (error) {
+                    console.error('Error deleting player:', error);
+                    alert('Gagal membuang player. Sila cuba lagi');
+                }
             }
         }
 
-        // Initialize on load
         window.addEventListener('load', () => {
-            console.log('DVLZ Registration System v1.0 - Loaded');
+            console.log('DVLZ Registration System v3.0');
+            console.log('Storage Mode:', CONFIG.USE_CLOUD ? 'Cloud' : 'Local');
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
         });
     </script>
 </body>
