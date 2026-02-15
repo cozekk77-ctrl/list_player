@@ -1,748 +1,612 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ms">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DVLZ Player Registration System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DVLZ Player Registry</title>
+  <meta name="color-scheme" content="dark" />
+  <style>
+    :root{
+      --bg:#070708;
+      --panel:#0e0f12;
+      --stroke:#1d1f26;
+      --text:#ffffff;
+      --muted:#b7b9c3;
+      --red:#e50914;
+      --red2:#ff2b2b;
+      --ok:#18d07b;
+      --warn:#ffcc66;
 
-        :root {
-            --primary-red: #E31E24;
-            --dark-red: #A51519;
-            --black: #0A0A0A;
-            --dark-gray: #1A1A1A;
-            --white: #FFFFFF;
-            --light-gray: #E5E5E5;
-        }
+      --r:16px;
+      --pad:14px;
+      --shadow: 0 10px 24px rgba(0,0,0,.45);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
 
-        body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, var(--black) 0%, var(--dark-gray) 100%);
-            color: var(--white);
-            min-height: 100vh;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 15% 10%, rgba(229,9,20,.22), transparent 55%),
+        radial-gradient(800px 420px at 85% 15%, rgba(255,43,43,.12), transparent 55%),
+        linear-gradient(180deg, #050506 0%, #08090c 60%, #050506 100%);
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: clamp(14px, 2.5vw, 24px);
+      display: grid;
+      gap: 12px;
+    }
 
-        .header {
-            text-align: center;
-            padding: 2rem 1rem;
-            background: linear-gradient(90deg, var(--dark-red) 0%, var(--primary-red) 100%);
-            margin-bottom: 2rem;
-            border-radius: 0 0 1rem 1rem;
-            box-shadow: 0 4px 20px rgba(227, 30, 36, 0.3);
-        }
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 6px 2px;
+    }
 
-        .header h1 {
-            font-size: clamp(1.5rem, 5vw, 2.5rem);
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap: 4px;
+      line-height:1.1;
+    }
+    .brand h1{
+      margin:0;
+      font-size: clamp(18px, 3vw, 22px);
+      letter-spacing:.3px;
+    }
+    .brand .sub{
+      margin:0;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
 
-        .header p {
-            font-size: clamp(0.85rem, 2vw, 1rem);
-            opacity: 0.95;
-            font-weight: 300;
-        }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-family: var(--mono);
+      font-size:12px;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(14,15,18,.7);
+      backdrop-filter: blur(8px);
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background: var(--red);
+      box-shadow: 0 0 0 3px rgba(229,9,20,.15);
+    }
 
-        .mode-toggle {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 920px){
+      .grid{ grid-template-columns: 1fr 1.2fr; }
+    }
 
-        .mode-btn {
-            background: var(--dark-gray);
-            color: var(--white);
-            border: 2px solid var(--primary-red);
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: clamp(0.85rem, 2vw, 1rem);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .card{
+      border:1px solid var(--stroke);
+      background: rgba(14,15,18,.75);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
 
-        .mode-btn:hover {
-            background: var(--primary-red);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(227, 30, 36, 0.4);
-        }
+    .card .hd{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--stroke);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      background:
+        linear-gradient(90deg, rgba(229,9,20,.22), transparent 55%);
+    }
+    .card .hd h2{
+      margin:0;
+      font-size: 13px;
+      font-family: var(--mono);
+      letter-spacing:.3px;
+      text-transform: uppercase;
+      color: #f3f4f7;
+    }
+    .card .bd{ padding: 14px; }
 
-        .mode-btn.active {
-            background: var(--primary-red);
-            box-shadow: 0 0 20px rgba(227, 30, 36, 0.6);
-        }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 520px){
+      .row.two{ grid-template-columns: 1fr 1fr; }
+      .row.three{ grid-template-columns: 1fr 1fr auto; align-items:end; }
+    }
 
-        .section {
-            background: var(--dark-gray);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(227, 30, 36, 0.2);
-        }
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 6px;
+      font-family: var(--mono);
+    }
+    input, select{
+      width:100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(7,7,8,.65);
+      color: var(--text);
+      outline:none;
+      font-size: 14px;
+    }
+    input::placeholder{ color: rgba(255,255,255,.35); }
+    input:focus, select:focus{
+      border-color: rgba(229,9,20,.75);
+      box-shadow: 0 0 0 3px rgba(229,9,20,.15);
+    }
 
-        .section h2 {
-            color: var(--primary-red);
-            margin-bottom: 1.5rem;
-            font-size: clamp(1.2rem, 3vw, 1.5rem);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--primary-red);
-            padding-bottom: 0.5rem;
-        }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(229,9,20,.65);
+      background: linear-gradient(180deg, rgba(229,9,20,.95), rgba(160,6,12,.95));
+      color: white;
+      padding: 11px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 700;
+      letter-spacing:.2px;
+      transition: transform .06s ease, filter .12s ease;
+      user-select:none;
+      width:100%;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn:hover{ filter: brightness(1.05); }
 
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
+    .btn.ghost{
+      background: rgba(7,7,8,.35);
+      border-color: var(--stroke);
+      font-weight: 600;
+      color: var(--muted);
+    }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            font-size: clamp(0.9rem, 2vw, 1rem);
-            color: var(--light-gray);
-        }
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .hint code{
+      font-family: var(--mono);
+      color:#fff;
+      background: rgba(229,9,20,.15);
+      border:1px solid rgba(229,9,20,.35);
+      padding: 1px 6px;
+      border-radius: 999px;
+    }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.875rem;
-            background: var(--black);
-            border: 2px solid var(--dark-gray);
-            border-radius: 0.5rem;
-            color: var(--white);
-            font-size: clamp(0.9rem, 2vw, 1rem);
-            transition: all 0.3s ease;
-        }
+    .status{
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(7,7,8,.35);
+      color: var(--muted);
+      display:none;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .status.ok{ display:block; border-color: rgba(24,208,123,.35); color: #bff3da; }
+    .status.err{ display:block; border-color: rgba(229,9,20,.45); color: #ffd2d6; }
+    .status.warn{ display:block; border-color: rgba(255,204,102,.4); color: #ffe8b8; }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary-red);
-            box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.1);
-        }
+    .toolbar{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+    }
+    .toolbar .grow{ flex: 1 1 auto; min-width: 220px; }
+    .toolbar input{ height: 42px; }
+    .toolbar .btn{ width: auto; padding: 10px 12px; height: 42px; }
 
-        .btn {
-            background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
-            color: var(--white);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: clamp(0.9rem, 2vw, 1rem);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            width: 100%;
-            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3);
-        }
-
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(227, 30, 36, 0.5);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .player-list {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .player-card {
-            background: var(--black);
-            border: 1px solid var(--dark-gray);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        .player-card:hover {
-            border-color: var(--primary-red);
-            transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.2);
-        }
-
-        .player-info {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .player-name {
-            font-weight: 700;
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
-            color: var(--white);
-            margin-bottom: 0.25rem;
-        }
-
-        .player-role {
-            color: var(--primary-red);
-            font-size: clamp(0.85rem, 2vw, 0.95rem);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .player-time {
-            font-size: clamp(0.75rem, 1.5vw, 0.85rem);
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 0.25rem;
-        }
-
-        .delete-btn {
-            background: transparent;
-            border: 2px solid var(--primary-red);
-            color: var(--primary-red);
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-        }
-
-        .delete-btn:hover {
-            background: var(--primary-red);
-            color: var(--white);
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--black);
-            padding: 1.25rem;
-            border-radius: 0.75rem;
-            text-align: center;
-            border: 2px solid var(--dark-gray);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--primary-red);
-            transform: translateY(-3px);
-        }
-
-        .stat-number {
-            font-size: clamp(1.75rem, 4vw, 2.5rem);
-            font-weight: 700;
-            color: var(--primary-red);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
-            font-size: clamp(0.8rem, 2vw, 0.95rem);
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .success-message {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: var(--white);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-weight: 600;
-            animation: slideDown 0.3s ease;
-        }
-
-        .error-message {
-            background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
-            color: var(--white);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-weight: 600;
-            animation: slideDown 0.3s ease;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 1.1rem;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0.75rem;
-            }
-
-            .header {
-                padding: 1.5rem 1rem;
-                margin-bottom: 1.5rem;
-            }
-
-            .section {
-                padding: 1.25rem;
-            }
-
-            .player-card {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .delete-btn {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .mode-toggle {
-                flex-direction: column;
-            }
-
-            .mode-btn {
-                width: 100%;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(7,7,8,.25);
+    }
+    thead th{
+      text-align:left;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--muted);
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--stroke);
+      background: rgba(14,15,18,.6);
+    }
+    tbody td{
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(29,31,38,.7);
+      font-size: 13px;
+      vertical-align: top;
+    }
+    tbody tr:hover{ background: rgba(229,9,20,.06); }
+    .mono{ font-family: var(--mono); }
+    .muted{ color: var(--muted); }
+    .tag{
+      display:inline-flex;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(229,9,20,.35);
+      background: rgba(229,9,20,.12);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+    .right{
+      text-align:right;
+      white-space:nowrap;
+    }
+    .smallbtn{
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      background: rgba(7,7,8,.35);
+      color: var(--muted);
+      cursor:pointer;
+    }
+    .smallbtn.danger{
+      border-color: rgba(229,9,20,.45);
+      color: #ffd2d6;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>DVLZ</h1>
-        <p>Professional Player Registration System</p>
-    </div>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>DVLZ Player Registry</h1>
+        <p class="sub">RED/BLACK • WHITE TEXT • COMPACT UI</p>
+      </div>
+      <div class="pill" title="Status server">
+        <span class="dot" id="dot"></span>
+        <span class="mono" id="serverState">checking…</span>
+      </div>
+    </header>
 
-    <div class="container">
-        <div class="mode-toggle">
-            <button class="mode-btn active" onclick="switchMode('register')">Player Registration</button>
-            <button class="mode-btn" onclick="switchMode('admin')">Admin Dashboard</button>
+    <div class="grid">
+      <!-- PLAYER FORM -->
+      <section class="card">
+        <div class="hd">
+          <h2>Player Submit</h2>
+          <span class="muted mono" id="apiBaseLabel"></span>
         </div>
-
-        <div id="registerSection" class="section">
-            <h2>Register Player</h2>
-            <div id="successMessage" class="success-message hidden"></div>
-            <div id="errorMessage" class="error-message hidden"></div>
-            <form id="playerForm" onsubmit="registerPlayer(event)">
-                <div class="form-group">
-                    <label for="playerName">Nama Player</label>
-                    <input type="text" id="playerName" placeholder="Masukkan nama anda" required>
-                </div>
-                <div class="form-group">
-                    <label for="playerRole">Role</label>
-                    <select id="playerRole" required>
-                        <option value="">Pilih role anda</option>
-                        <option value="OWNER">OWNER</option>
-                        <option value="CO-OWNER">CO-OWNER</option>
-                        <option value="FOUNDER">FOUNDER</option>
-                        <option value="CO-FOUNDER">CO-FOUNDER</option>
-                        <option value="ELITEZ">ELITEZ</option>
-                        <option value="LEADER">LEADER</option>
-                        <option value="CO-LEADER">CO-LEADER</option>
-                        <option value="ADMIN">ADMIN</option>
-                        <option value="CO-ADMIN">CO-ADMIN</option>
-                        <option value="DESIGNER">DESIGNER</option>
-                        <option value="CREWZ">CREWZ</option>
-                        <option value="AHLI BIASA">AHLI BIASA</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn" id="submitBtn">Daftar Sekarang</button>
-            </form>
-        </div>
-
-        <div id="adminSection" class="section hidden">
-            <h2>Admin Dashboard</h2>
-            
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalPlayers">0</div>
-                    <div class="stat-label">Total Players</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="todayRegistrations">0</div>
-                    <div class="stat-label">Today</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="uniqueRoles">0</div>
-                    <div class="stat-label">Roles</div>
-                </div>
+        <div class="bd">
+          <form id="playerForm" autocomplete="off">
+            <div class="row two">
+              <div>
+                <label for="name">NAMA</label>
+                <input id="name" name="name" placeholder="Contoh: Aqil" maxlength="40" required />
+              </div>
+              <div>
+                <label for="role">ROLE</label>
+                <select id="role" name="role" required>
+                  <option value="">Pilih role…</option>
+                  <option>Leader</option>
+                  <option>Co-Leader</option>
+                  <option>Strategist</option>
+                  <option>Support</option>
+                  <option>Entry</option>
+                  <option>Sniper</option>
+                  <option>Sub</option>
+                  <option>Other</option>
+                </select>
+              </div>
             </div>
 
-            <div id="loadingIndicator" class="loading hidden">Memuat data...</div>
-            <div id="playerList" class="player-list"></div>
+            <div class="row">
+              <button class="btn" type="submit">HANTAR</button>
+              <button class="btn ghost" type="button" id="clearMe">CLEAR</button>
+            </div>
+
+            <div class="hint">
+              Data disimpan di server. Admin view guna <code>Admin Key</code> di panel kanan.
+            </div>
+            <div class="status" id="playerStatus"></div>
+          </form>
         </div>
+      </section>
+
+      <!-- ADMIN PANEL -->
+      <section class="card">
+        <div class="hd">
+          <h2>Admin Panel</h2>
+          <span class="muted mono" id="countLabel">0</span>
+        </div>
+        <div class="bd">
+          <div class="row three">
+            <div class="grow">
+              <label for="adminKey">ADMIN KEY</label>
+              <input id="adminKey" placeholder="Masukkan admin key…" />
+            </div>
+            <div>
+              <button class="btn" id="saveKey" type="button">SAVE</button>
+            </div>
+            <div>
+              <button class="btn ghost" id="logoutKey" type="button">LOGOUT</button>
+            </div>
+          </div>
+
+          <div class="toolbar" style="margin-top:12px;">
+            <div class="grow">
+              <label for="search">SEARCH</label>
+              <input id="search" placeholder="Cari nama/role…" />
+            </div>
+            <div>
+              <button class="btn" id="refresh" type="button">REFRESH</button>
+            </div>
+          </div>
+
+          <div class="status" id="adminStatus"></div>
+
+          <div style="margin-top:12px; overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:34%;">Name</th>
+                  <th style="width:22%;">Role</th>
+                  <th style="width:28%;">Created</th>
+                  <th class="right" style="width:16%;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tbody">
+                <tr><td colspan="4" class="muted mono">Sila login admin untuk view list.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="hint">
+            Tip: letak <code>ADMIN_KEY</code> dalam server.js (backend) dan hanya awak tahu.
+          </div>
+        </div>
+      </section>
     </div>
+  </div>
 
-    <script>
-        // Configuration - Guna Google Apps Script sebagai backend
-        const CONFIG = {
-            // Anda perlu create Google Apps Script dan masukkan URL dia sini
-            API_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
-            // Atau guna localStorage jika takde backend
-            USE_CLOUD: false // Set true bila dah setup backend
-        };
+<script>
+(() => {
+  // === CONFIG ===
+  // Kalau deploy di domain sama, biar kosong (auto).
+  // Kalau backend lain domain: const API_BASE = "https://your-backend-domain.com";
+  const API_BASE = "";
+  const $ = (s) => document.querySelector(s);
 
-        class PlayerManager {
-            constructor() {
-                this.storageKey = 'dvlz_players_data';
-            }
+  const apiBaseLabel = $("#apiBaseLabel");
+  apiBaseLabel.textContent = API_BASE ? API_BASE.replace(/^https?:\/\//,'') : "local";
 
-            async getAllPlayers() {
-                if (CONFIG.USE_CLOUD) {
-                    return await this.getPlayersFromCloud();
-                }
-                return this.getPlayersFromLocal();
-            }
+  const dot = $("#dot");
+  const serverState = $("#serverState");
 
-            async getPlayersFromCloud() {
-                try {
-                    const response = await fetch(CONFIG.API_URL + '?action=getPlayers');
-                    const data = await response.json();
-                    return data.players || [];
-                } catch (error) {
-                    console.error('Error fetching from cloud:', error);
-                    return this.getPlayersFromLocal();
-                }
-            }
+  const playerForm = $("#playerForm");
+  const playerStatus = $("#playerStatus");
+  const adminStatus = $("#adminStatus");
+  const tbody = $("#tbody");
+  const countLabel = $("#countLabel");
 
-            getPlayersFromLocal() {
-                try {
-                    const data = localStorage.getItem(this.storageKey);
-                    return data ? JSON.parse(data) : [];
-                } catch (error) {
-                    console.error('Error reading local storage:', error);
-                    return [];
-                }
-            }
+  const adminKeyInput = $("#adminKey");
+  const searchInput = $("#search");
 
-            async addPlayer(name, role) {
-                const player = {
-                    id: this.generateId(),
-                    name: this.sanitize(name),
-                    role: this.sanitize(role),
-                    timestamp: new Date().toISOString(),
-                    registeredDate: this.formatDate(new Date())
-                };
+  const LS_KEY = "dvlz_admin_key_v1";
 
-                if (CONFIG.USE_CLOUD) {
-                    return await this.addPlayerToCloud(player);
-                }
-                return this.addPlayerToLocal(player);
-            }
+  function setStatus(el, type, msg){
+    el.className = "status " + type;
+    el.textContent = msg;
+  }
+  function clearStatus(el){
+    el.className = "status";
+    el.textContent = "";
+  }
 
-            async addPlayerToCloud(player) {
-                try {
-                    const response = await fetch(CONFIG.API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'addPlayer', player: player })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        return player;
-                    }
-                    throw new Error('Failed to add player');
-                } catch (error) {
-                    console.error('Error adding to cloud:', error);
-                    return this.addPlayerToLocal(player);
-                }
-            }
+  function fmtDate(iso){
+    try{
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+    }catch(e){ return iso; }
+  }
 
-            addPlayerToLocal(player) {
-                const players = this.getPlayersFromLocal();
-                players.unshift(player);
-                localStorage.setItem(this.storageKey, JSON.stringify(players));
-                return player;
-            }
+  async function ping(){
+    try{
+      const r = await fetch(API_BASE + "/api/health", { cache:"no-store" });
+      if(!r.ok) throw new Error("bad");
+      dot.style.background = "var(--ok)";
+      serverState.textContent = "server online";
+    }catch(e){
+      dot.style.background = "var(--red)";
+      serverState.textContent = "server offline";
+    }
+  }
 
-            async deletePlayer(id) {
-                if (CONFIG.USE_CLOUD) {
-                    return await this.deletePlayerFromCloud(id);
-                }
-                return this.deletePlayerFromLocal(id);
-            }
+  function getKey(){
+    return adminKeyInput.value.trim() || localStorage.getItem(LS_KEY) || "";
+  }
 
-            async deletePlayerFromCloud(id) {
-                try {
-                    const response = await fetch(CONFIG.API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'deletePlayer', id: id })
-                    });
-                    const data = await response.json();
-                    return data.success;
-                } catch (error) {
-                    console.error('Error deleting from cloud:', error);
-                    return this.deletePlayerFromLocal(id);
-                }
-            }
+  function loadSavedKey(){
+    const k = localStorage.getItem(LS_KEY);
+    if(k) adminKeyInput.value = k;
+  }
 
-            deletePlayerFromLocal(id) {
-                const players = this.getPlayersFromLocal().filter(p => p.id !== id);
-                localStorage.setItem(this.storageKey, JSON.stringify(players));
-                return true;
-            }
+  async function submitPlayer(name, role){
+    clearStatus(playerStatus);
+    const body = { name: name.trim(), role: role.trim() };
+    const r = await fetch(API_BASE + "/api/register", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await r.json().catch(() => ({}));
+    if(!r.ok){
+      throw new Error(data?.error || "Submit gagal.");
+    }
+    return data;
+  }
 
-            generateId() {
-                return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-            }
+  function renderRows(items){
+    const q = searchInput.value.trim().toLowerCase();
+    const filtered = !q ? items : items.filter(x =>
+      (x.name||"").toLowerCase().includes(q) || (x.role||"").toLowerCase().includes(q)
+    );
 
-            sanitize(input) {
-                const div = document.createElement('div');
-                div.textContent = input;
-                return div.innerHTML;
-            }
+    countLabel.textContent = `${filtered.length}/${items.length}`;
 
-            formatDate(date) {
-                const day = String(date.getDate()).padStart(2, '0');
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
-                const month = months[date.getMonth()];
-                const year = date.getFullYear();
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                return `${day} ${month} ${year}, ${hours}:${minutes}`;
-            }
+    if(filtered.length === 0){
+      tbody.innerHTML = `<tr><td colspan="4" class="muted mono">Tiada data match.</td></tr>`;
+      return;
+    }
 
-            async getStats() {
-                const players = await this.getAllPlayers();
-                const today = new Date().toDateString();
-                const todayCount = players.filter(p => {
-                    const playerDate = new Date(p.timestamp);
-                    return playerDate.toDateString() === today;
-                }).length;
-                const uniqueRoles = new Set(players.map(p => p.role)).size;
+    tbody.innerHTML = filtered.map(x => `
+      <tr data-id="${x.id}">
+        <td><span class="mono">${escapeHtml(x.name)}</span></td>
+        <td><span class="tag">${escapeHtml(x.role)}</span></td>
+        <td class="muted mono">${escapeHtml(fmtDate(x.created_at))}</td>
+        <td class="right">
+          <button class="smallbtn danger" data-del="${x.id}">DEL</button>
+        </td>
+      </tr>
+    `).join("");
+  }
 
-                return {
-                    total: players.length,
-                    today: todayCount,
-                    roles: uniqueRoles
-                };
-            }
-        }
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[c]);
+  }
 
-        const playerManager = new PlayerManager();
-        let autoRefreshInterval = null;
+  let cache = [];
 
-        function switchMode(mode) {
-            const registerSection = document.getElementById('registerSection');
-            const adminSection = document.getElementById('adminSection');
-            const buttons = document.querySelectorAll('.mode-btn');
+  async function fetchList(){
+    clearStatus(adminStatus);
+    const key = getKey();
+    if(!key){
+      tbody.innerHTML = `<tr><td colspan="4" class="muted mono">Sila masukkan Admin Key.</td></tr>`;
+      countLabel.textContent = "0";
+      return;
+    }
 
-            buttons.forEach(btn => btn.classList.remove('active'));
+    const r = await fetch(API_BASE + "/api/list", {
+      headers: { "x-admin-key": key },
+      cache:"no-store"
+    });
+    const data = await r.json().catch(() => ({}));
+    if(!r.ok){
+      setStatus(adminStatus, "err", data?.error || "Tak boleh load list (Admin Key salah?).");
+      tbody.innerHTML = `<tr><td colspan="4" class="muted mono">Access denied.</td></tr>`;
+      countLabel.textContent = "0";
+      return;
+    }
+    cache = data.items || [];
+    renderRows(cache);
+  }
 
-            if (mode === 'register') {
-                registerSection.classList.remove('hidden');
-                adminSection.classList.add('hidden');
-                buttons[0].classList.add('active');
-                
-                if (autoRefreshInterval) {
-                    clearInterval(autoRefreshInterval);
-                    autoRefreshInterval = null;
-                }
-            } else {
-                registerSection.classList.add('hidden');
-                adminSection.classList.remove('hidden');
-                buttons[1].classList.add('active');
-                loadAdminDashboard();
-                
-                autoRefreshInterval = setInterval(() => {
-                    loadAdminDashboard();
-                }, 5000);
-            }
-        }
+  async function delItem(id){
+    const key = getKey();
+    const r = await fetch(API_BASE + "/api/delete/" + encodeURIComponent(id), {
+      method:"DELETE",
+      headers: { "x-admin-key": key },
+    });
+    const data = await r.json().catch(() => ({}));
+    if(!r.ok){
+      throw new Error(data?.error || "Delete gagal.");
+    }
+    return data;
+  }
 
-        async function registerPlayer(event) {
-            event.preventDefault();
+  // Events
+  playerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("#name").value;
+    const role = $("#role").value;
+    try{
+      const res = await submitPlayer(name, role);
+      setStatus(playerStatus, "ok", `OK ✅\nSaved: ${res.item?.name} • ${res.item?.role}`);
+      $("#name").value = "";
+      $("#role").value = "";
+      $("#name").focus();
+      // optional refresh list if admin key exists
+      if(getKey()) fetchList();
+    }catch(err){
+      setStatus(playerStatus, "err", "ERROR ❌\n" + err.message);
+    }
+  });
 
-            const name = document.getElementById('playerName').value.trim();
-            const role = document.getElementById('playerRole').value;
-            const submitBtn = document.getElementById('submitBtn');
+  $("#clearMe").addEventListener("click", () => {
+    $("#name").value = "";
+    $("#role").value = "";
+    clearStatus(playerStatus);
+    $("#name").focus();
+  });
 
-            if (!name || !role) {
-                showErrorMessage('Sila isi semua maklumat');
-                return;
-            }
+  $("#saveKey").addEventListener("click", async () => {
+    const k = adminKeyInput.value.trim();
+    if(!k){
+      setStatus(adminStatus, "warn", "Masukkan Admin Key dulu.");
+      return;
+    }
+    localStorage.setItem(LS_KEY, k);
+    setStatus(adminStatus, "ok", "Admin Key disimpan (local).");
+    await fetchList();
+  });
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Sedang mendaftar...';
+  $("#logoutKey").addEventListener("click", () => {
+    localStorage.removeItem(LS_KEY);
+    adminKeyInput.value = "";
+    cache = [];
+    countLabel.textContent = "0";
+    tbody.innerHTML = `<tr><td colspan="4" class="muted mono">Logged out.</td></tr>`;
+    setStatus(adminStatus, "ok", "Logged out.");
+  });
 
-            try {
-                const player = await playerManager.addPlayer(name, role);
-                
-                if (player) {
-                    showSuccessMessage(`${player.name} berjaya didaftarkan sebagai ${player.role}`);
-                    document.getElementById('playerForm').reset();
-                } else {
-                    showErrorMessage('Gagal mendaftar. Sila cuba lagi');
-                }
-            } catch (error) {
-                console.error('Registration error:', error);
-                showErrorMessage('Ralat semasa mendaftar. Sila cuba lagi');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Daftar Sekarang';
-            }
-        }
+  $("#refresh").addEventListener("click", fetchList);
+  searchInput.addEventListener("input", () => renderRows(cache));
 
-        function showSuccessMessage(message) {
-            const messageDiv = document.getElementById('successMessage');
-            messageDiv.textContent = message;
-            messageDiv.classList.remove('hidden');
-            hideErrorMessage();
-            
-            setTimeout(() => {
-                messageDiv.classList.add('hidden');
-            }, 4000);
-        }
+  tbody.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-del]");
+    if(!btn) return;
+    const id = btn.getAttribute("data-del");
+    if(!confirm("Delete item ini?")) return;
+    try{
+      await delItem(id);
+      setStatus(adminStatus, "ok", "Deleted ✅");
+      await fetchList();
+    }catch(err){
+      setStatus(adminStatus, "err", "ERROR ❌\n" + err.message);
+    }
+  });
 
-        function showErrorMessage(message) {
-            const messageDiv = document.getElementById('errorMessage');
-            messageDiv.textContent = message;
-            messageDiv.classList.remove('hidden');
-            hideSuccessMessage();
-            
-            setTimeout(() => {
-                messageDiv.classList.add('hidden');
-            }, 4000);
-        }
-
-        function hideSuccessMessage() {
-            document.getElementById('successMessage').classList.add('hidden');
-        }
-
-        function hideErrorMessage() {
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
-
-        async function loadAdminDashboard() {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            
-            if (document.getElementById('playerList').children.length === 0) {
-                loadingIndicator.classList.remove('hidden');
-            }
-
-            try {
-                await updateStats();
-                await renderPlayerList();
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-            } finally {
-                loadingIndicator.classList.add('hidden');
-            }
-        }
-
-        async function updateStats() {
-            const stats = await playerManager.getStats();
-            document.getElementById('totalPlayers').textContent = stats.total;
-            document.getElementById('todayRegistrations').textContent = stats.today;
-            document.getElementById('uniqueRoles').textContent = stats.roles;
-        }
-
-        async function renderPlayerList() {
-            const players = await playerManager.getAllPlayers();
-            const listContainer = document.getElementById('playerList');
-
-            if (players.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="empty-state">
-                        <p>Tiada player didaftarkan lagi</p>
-                    </div>
-                `;
-                return;
-            }
-
-            listContainer.innerHTML = players.map(player => `
-                <div class="player-card">
-                    <div class="player-info">
-                        <div class="player-name">${player.name}</div>
-                        <div class="player-role">${player.role}</div>
-                        <div class="player-time">${player.registeredDate}</div>
-                    </div>
-                    <button class="delete-btn" onclick="deletePlayer('${player.id}')">
-                        Buang
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        async function deletePlayer(id) {
-            if (confirm('Anda pasti nak buang player ini?')) {
-                try {
-                    await playerManager.deletePlayer(id);
-                    await loadAdminDashboard();
-                } catch (error) {
-                    console.error('Error deleting player:', error);
-                    alert('Gagal membuang player. Sila cuba lagi');
-                }
-            }
-        }
-
-        window.addEventListener('load', () => {
-            console.log('DVLZ Registration System v3.0');
-            console.log('Storage Mode:', CONFIG.USE_CLOUD ? 'Cloud' : 'Local');
-        });
-
-        window.addEventListener('beforeunload', () => {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
-        });
-    </script>
+  // Init
+  loadSavedKey();
+  ping();
+  setInterval(ping, 8000);
+})();
+</script>
 </body>
 </html>
